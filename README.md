@@ -1,7 +1,8 @@
 # eve-core
 
 <div align="center">
-
+<img src="eve_logo.jpg" alt="EVE Logo" width="150" height="250"/>
+  
 # EVE AI Core — Deterministic Governance Control Plane
 
 ### Pre-Execution Policy Enforcement for Autonomous AI Systems
