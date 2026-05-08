@@ -6,6 +6,21 @@
 
 ### Pre-Execution Policy Enforcement for Autonomous AI Systems
 
+### 🌐 EVE AI Core Infrastructure
+
+| Project Component | Primary Domain | Functional Purpose |
+| :--- | :--- | :--- |
+| **EVE AI Core Admin** | [eveaicore.com](https://eveaicore.com) | Central Administrative Hub, API Registry, and Developer Console. |
+| **Sovereign Identity** | [evecore.ai](https://evecore.ai) | Sovereign SDK, Identity Migration Protocols, and "Hard-Block" Determinism. |
+| **Core Architecture** | [evecore.com](https://evecore.com) | Foundational Substrate, CoreGuard Governance, and Infrastructure of No. |
+
+---
+
+### 🛡️ Development Status
+*   **Governance:** Integrated CoreGuard pipeline (v2026.04)
+*   **Compliance:** USPTO Provisional Patent Mapping (Applications 64/012,234 & 64/012,252)
+*   **Orchestration:** Thermal-aware GPU orchestration (NVIDIA RTX 3090/5090/H200)
+
 [![Live Service](https://img.shields.io/badge/status-live-green.svg)](https://eveaicore.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
