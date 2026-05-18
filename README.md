@@ -3,30 +3,15 @@
 <div align="center">
 <img src="eve_logo.jpg" alt="EVE Logo" width="150" height="250"/>
   
-# EVE AI Core — Deterministic Governance Control Plane
+# EVE AI Core — Deterministic Governance Control Planae
 
 ### Pre-Execution Policy Enforcement for Autonomous AI Systems
-
-### 🌐 EVE AI Core Infrastructure
-
-| Project Component | Primary Domain | Functional Purpose |
-| :--- | :--- | :--- |
-| **EVE AI Core Admin** | [eveaicore.com](https://eveaicore.com) | Central Administrative Hub, API Registry, and Developer Console. |
-| **Sovereign Identity** | [evecore.ai](https://evecore.ai) | Sovereign SDK, Identity Migration Protocols, and "Hard-Block" Determinism. |
-| **Core Architecture** | [evecore.com](https://evecore.com) | Foundational Substrate, CoreGuard Governance, and Infrastructure of No. |
-
----
-
-### 🛡️ Development Status
-*   **Governance:** Integrated CoreGuard pipeline (v2026.04)
-*   **Compliance:** USPTO Provisional Patent Mapping (Applications 64/012,234 & 64/012,252)
-*   **Orchestration:** Thermal-aware GPU orchestration (NVIDIA RTX 3090/5090/H200)
 
 [![Live Service](https://img.shields.io/badge/status-live-green.svg)](https://eveaicore.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Patents](https://img.shields.io/badge/USPTO-90_patents-blue.svg)](#intellectual-property)
-[![Last updated](https://img.shields.io/badge/updated-2026--05--07-informational.svg)](#)
+[![Last updated](https://img.shields.io/badge/updated-2026--05--18-informational.svg)](#)
 
 **No AI action executes without passing through EVE's governance pipeline first.**
 
@@ -142,9 +127,9 @@ Response
 ```
 eve.py (process supervisor with watchdog, crash-loop detection, backoff)
 +-- Gateway (port 8080)              interfaces/gateway.py               Inbound reverse proxy
-+-- Governance Server (8079)         interfaces/web_chat_server.py       28,646 lines
-+-- SaaS API (port 8000)             saas/app.py                         FastAPI, 23 routers
-|   +-- Runtime Execution Plane      saas/routers/governance_runtime.py  822 lines, /api/runtime/*
++-- Governance Server (8079)         interfaces/web_chat_server.py       32,710 lines
++-- SaaS API (port 8000)             saas/app.py                         FastAPI, 28 routers
+|   +-- Runtime Execution Plane      saas/routers/governance_runtime.py  1,215 lines, /api/runtime/*
 +-- Avatar Gateway (port 8765)       avatar/gateway/main.py              Optional
 +-- Sidecar Forward Proxy (3128)     interfaces/gateway/forward_proxy.py Egress interceptor
 ```
@@ -359,7 +344,7 @@ Each pattern triggers `SURFACE_CLASSIFICATION` + `AUTHORITATIVE_EXECUTION_AVAILA
 
 ## Authenticated Runtime Execution Plane
 
-`saas/routers/governance_runtime.py` (822 lines) — mounted at `/api/runtime/*` on the SaaS API (port 8000).
+`saas/routers/governance_runtime.py` (1,215 lines) — mounted at `/api/runtime/*` on the SaaS API (port 8000).
 
 The runtime execution plane is EVE's authoritative adjudication endpoint: a dedicated, authenticated, HMAC-SHA256 signed execution surface for governed decisions that require cryptographic proof, replay protection, and a full audit trail. It is distinct from the chat surface and the CoreGuard evaluation endpoint — it is the plane where authority-sensitive decisions are made.
 
@@ -625,6 +610,160 @@ Every AI output is intercepted, scored, and either released, modified, or blocke
 | **Speculative Execution Engine** | Execution | Pre-compute governance verdicts with ISO 42001 audit compliance |
 | **CoreGuard SDK** | Control | `POST /v1/decisions/evaluate`, sub-20ms, pip-installable |
 | **Audit Export** | Evidence | One-click JSON/CSV export for regulators |
+| **Trust Fabric Middleware** | Control | "Cloudflare for AI" — orchestrates ALL pre+post execution checks, 1,702 lines |
+| **Governance Decision Ledger** | Evidence | Append-only, chain-hash linked decision store (separate from claims ledger), asyncpg/SQLite |
+| **Evidence Package Generator** | Evidence | Structured ECOA/SR 11-7 adverse action packages with replay_instructions.md |
+| **Governance Gateway** | Control | Single entry point: `/gateway/chat`, `/gateway/agent_action`, `/gateway/tool_request` |
+| **Langfuse LLM Observability** | Execution | Token/cost/latency tracking, prompt versioning, LLM call tracing |
+| **Vitals API** | Evidence | `/api/vitals/*` — real-time system health with Prometheus text exposition |
+| **CoreGuard Rights** | Evidence | GDPR Art. 22 data subject rights — explanation, review-request, contest, rights-status |
+
+### Trust Fabric Middleware
+
+`core/trust_fabric/trust_fabric_middleware.py` (1,702 lines) — "Cloudflare for AI". Orchestrates all pre-execution and post-execution checks into a unified request-handling pipeline, producing a signed `TrustFabricVerdict` for every request.
+
+**Pre-execution pipeline:**
+
+| Stage | What It Does |
+|-------|-------------|
+| Policy evaluation | Tenant limits, rate limits, model/tool access entitlements |
+| Firewall scan | Prompt injection, jailbreak, multi-turn attack pattern recognition |
+| Compliance check | Regulatory patterns, PII detection, prohibited content |
+| Charter veto | Deterministic ethical check, 15 immutable rules (pure-function, <1ms) |
+
+**Post-execution pipeline:**
+
+| Stage | What It Does |
+|-------|-------------|
+| Output firewall | PII leakage, secret exposure, architecture echo |
+| Behavioral analysis | Model fingerprint drift, anomaly detection vs. registered profile |
+| Trust score compute | Weighted aggregate of all pre+post check results |
+| Attestation | HMAC-SHA256 signed `TrustFabricVerdict` for the request |
+| Immutable logging | Append-only JSONL decision log entry |
+
+Every request that transits EVE receives a `TrustFabricVerdict` — a signed, structured summary of every check that fired and the aggregate trust disposition of the request.
+
+### Governance Gateway
+
+`core/control_plane/gateway.py` (517 lines) — all AI requests flow through this gateway before reaching any provider. Client → governance gateway → policy check → veto check → model provider → decision ledger → governed response.
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /gateway/chat` | Governed chat completion |
+| `POST /gateway/agent_action` | Governed agent action |
+| `POST /gateway/tool_request` | Governed tool execution |
+
+### Governance Decision Ledger
+
+`core/governance_ledger/ledger.py` (704 lines) — append-only, hash-chained record of every governance decision. Distinct from the Claims Ledger (which tracks factual claims with Brier calibration); this ledger records the complete governance verdict for every request.
+
+**Chain hash construction** (deterministic, no timestamps):
+```python
+chain_hash = sha256(jcs_canonical_bytes({
+    "tenant_id": ...,
+    "request_id": ...,
+    "context_hash": ...,
+    "policy_set": ...,
+    "policy_version": ...,
+    "policy_snapshot_id": ...,
+    "decision": ...,
+    "claim_types_detected": sorted([...]),
+    "claim_count": ...,
+    "prev_chain_hash": ...,
+}))
+```
+
+Backend: asyncpg (PostgreSQL, production), SQLite (development/fallback). No timestamps in the chain hash — chain integrity is content-only, not time-dependent.
+
+### Evidence Package Generator
+
+`core/evidence_plane/evidence_package_generator.py` (485 lines) — generates structured regulatory evidence packages for decisions that require audit documentation.
+
+**Trigger conditions** (any one is sufficient):
+- BLOCK verdict (always)
+- ALLOW verdict where max detector confidence ≥ HIGH_RISK_PASS_THRESHOLD
+- Tenant-boundary detector triggered
+- Authority override detector triggered
+
+**Package contents:**
+- `adverse_action_mapping` — triggered detectors cross-referenced against signed policy snapshot
+- `compliance_mapping` — applicable ECOA / SR 11-7 controls for the decision
+- `replay_instructions.md` — step-by-step instructions for an auditor to independently verify the decision
+- Full `EvidencePackage` structure linking all sections
+
+### CoreGuard Rights — GDPR Art. 22
+
+`saas/routers/coreguard_rights.py` — GDPR Article 22 data subject rights for automated governance decisions.
+
+| Endpoint | GDPR Basis | Description |
+|----------|-----------|-------------|
+| `GET /{decision_id}/explanation` | Art. 22(3) | Plain-language explanation of why a decision was made. Never 404s; internal policy rule IDs never surfaced. |
+| `POST /{decision_id}/review-request` | Art. 22(2)(b) | Request human review of an automated decision. 5-day SLA. |
+| `POST /{decision_id}/contest` | Art. 22(3) + Art. 12(3) | Contest an automated decision. 30-day SLA. |
+| `GET /{decision_id}/rights-status` | — | Status of all rights requests for a decision. |
+
+### Langfuse LLM Observability
+
+`core/observability/langfuse_integration.py` — production LLM observability integrated into the execution pipeline:
+
+- LLM call tracing with prompt and completion capture
+- Token usage and cost tracking per request and session
+- Latency monitoring (TTFT, total generation time)
+- User feedback collection and session correlation
+- Prompt versioning — links each generation to the prompt template version active at call time
+
+### Vitals API
+
+`core/vitals/api.py` — system health monitoring with Prometheus text exposition:
+
+| Endpoint | Format | Description |
+|----------|--------|-------------|
+| `GET /api/vitals` | JSON | Full vital packet — all system health readings |
+| `GET /api/vitals/summary` | JSON | Summary-only (key metrics) |
+| `GET /api/vitals/prometheus` | text/plain | Prometheus text exposition for scraping |
+| `GET /api/vitals/{name}` | JSON | Single named vital reading |
+
+---
+
+## Regulatory Compliance Engine
+
+`core/compliance/regulatory_engine.py` — automated compliance classification, SOC 2 control mapping, and audit package generation.
+
+### EU AI Act Risk Classification
+
+Every request is classified into one of four EU AI Act risk tiers before any LLM call:
+
+| Risk Tier | Trigger | EVE Response |
+|-----------|---------|-------------|
+| `PROHIBITED` | Social scoring, real-time biometric surveillance, subliminal manipulation | Hard block; certificate issued |
+| `HIGH_RISK` | Credit scoring, employment, critical infrastructure, law enforcement | Full governance stack, mandatory documentation |
+| `LIMITED_RISK` | Chatbots, emotion recognition, generated content | Transparency requirements enforced |
+| `MINIMAL_RISK` | Spam filters, AI-enabled games | Standard governance; no additional requirements |
+
+Classification produces an `EU_AI_ACT_COMPLIANCE` field (`COMPLIANT` / `NON_COMPLIANT`) in every `compliance_summary` block. Non-compliant requests are hard-blocked before reaching the LLM.
+
+### SOC 2 Type II — 25+ Controls Mapped to EVE Modules
+
+| Control Domain | EVE Module | Status |
+|----------------|-----------|--------|
+| Logical Access — authentication | `saas/routers/auth.py`, `saas/routers/two_factor.py`, `saas/routers/webauthn.py` | IMPLEMENTED |
+| Logical Access — authorization | `saas/routers/access_control.py`, RBAC `core/tasks/rbac.py` | IMPLEMENTED |
+| Audit Logging — completeness | `core/governance/unified_audit_bus.py` (16 source systems) | IMPLEMENTED |
+| Audit Logging — tamper evidence | HMAC-SHA256 + JCS canonicalization + hash chain | IMPLEMENTED |
+| Encryption at rest | `core/security/credential_vault.py` (AES-256-GCM) | IMPLEMENTED |
+| Encryption in transit | TLS via gateway, sidecar proxy | IMPLEMENTED |
+| Incident Management | `saas/routers/incidents.py` | IMPLEMENTED |
+| Change Management | `core/governance/self_modification_governance.py` | IMPLEMENTED |
+| Risk Assessment | `core/governance/veto_core.py` + `core/tasks/risk_engine.py` | IMPLEMENTED |
+| Vendor Management | Build attestation (SLSA L2), SBOM (CycloneDX 1.4) | IMPLEMENTED |
+| Backup & Recovery | Multi-layer memory with SQLite WAL + PostgreSQL | IMPLEMENTED |
+| Monitoring & Alerting | `core/siem/` — SIEM exporters (Splunk, Datadog, Kafka, Syslog) | IMPLEMENTED |
+
+Compliance score = % controls with `IMPLEMENTED` status. JSONL persistence at `data/compliance/`. Model cards, incident tracking, and audit package export included.
+
+### ECOA & SR 11-7 Static Mappings
+
+`core/compliance/framework_mapping.py` defines static control definitions for the Equal Credit Opportunity Act (ECOA) and the Federal Reserve's SR 11-7 Model Risk Management guidance. These mappings are included verbatim in the signed `policy_snapshot_hash` — once a snapshot is signed, the regulatory mapping is immutable.
 
 ---
 
@@ -647,6 +786,30 @@ Every AI output is intercepted, scored, and either released, modified, or blocke
 **Build attestation.** SLSA Level 2 build provenance: git state, dependency hashes, source tree hash, Docker digest.
 
 **Runtime decision traces.** Every `/api/runtime/adjudicate` call produces a provenance record retrievable at `/api/runtime/provenance/{id}` — full decision timeline, HMAC signature, chain position, and tenant isolation marker.
+
+### Context Hashing & Deterministic Replay Detection
+
+`core/context_hashing/` produces two deterministic hashes for every governed request:
+
+| Hash | Inputs | Purpose |
+|------|--------|---------|
+| `context_hash` | SHA-256 of JCS-sorted claims envelope (all claims extracted from the input) | Uniquely fingerprints the semantic content of a request regardless of request metadata |
+| `evaluation_basis_hash` | SHA-256 of JCS of 8 fields: `input_hash`, `policy_snapshot_hash`, `context_hash`, ordered claim hashes, `tenant_id`, `conversation_id`, canonicalization profile, hasher version | Uniquely fingerprints the complete evaluation basis — content + policy version + tenant |
+
+Both hashes are deterministic: the same conversation always produces identical hashes across all replicas. They appear in every `GovernanceEvent` emitted to the SIEM bus and in every signed Decision Certificate.
+
+**Policy Snapshot Hash.** The `policy_snapshot_hash` is a signed, immutable hash of all active policy rules — including static ECOA (Equal Credit Opportunity Act) and SR 11-7 (Model Risk Management) control mappings loaded from `core/compliance/framework_mapping.py`. Once signed into a snapshot, the policy is frozen. A different policy produces a different hash, making snapshot substitution attacks detectable.
+
+**Policy Snapshot Ed25519 Signing.** The snapshot itself is signed with **Ed25519** (`core/policy_snapshots/signer.py`), not HMAC-SHA256. This is distinct from Decision Certificate signing (which uses HMAC-SHA256). The snapshot signer signs the JCS-canonical bytes of the hashable policy dict (`policy_set`, `version`, `rules` sorted by `rule_id`, `principles` sorted). The `snapshot_id` is the first 16 hex characters of the content hash. Raw key bytes are stored as lowercase hex strings.
+
+```python
+private_hex, public_hex = generate_signing_keypair()   # Ed25519
+signer = Ed25519Signer(private_hex)
+sig_hex = signer.sign(jcs_canonical_bytes)              # Signs content only, no timestamp
+valid = Ed25519Signer.verify(jcs_canonical_bytes, sig_hex, public_hex)
+```
+
+**Replay Validator** (`core/context_hashing/replay_validator.py`): In-memory LRU cache keyed by `context_hash`. Same `context_hash` + different `request_id` = replay attack (returns `REPLAY_DETECTED`). Same `context_hash` + same `request_id` = idempotent retry (allowed). Thread-safe on CPython (GIL). Default capacity: 10,000 entries. Multi-process deployments should use the Redis-backed store.
 
 ---
 
@@ -745,6 +908,18 @@ EVE ships four commercial products, each with a distinct buyer persona:
 
 The authenticated runtime execution plane is tenant-isolated by design: every `/api/runtime/adjudicate` request requires a `tenant_id`, and decision records are never accessible across tenant boundaries.
 
+### Inference Credit Marketplace
+
+`saas/routers/credit_marketplace.py` — order-book exchange for inference credits at `/api/marketplace/*`. Enables tenants to trade unused inference quota:
+
+| Feature | Details |
+|---------|---------|
+| Order book | Limit buy/sell orders with price and quantity |
+| Spot price | Real-time market-clearing price |
+| Trade history | Timestamped completed trades per tenant |
+| Market statistics | Volume, price range, bid/ask spread |
+| Order management | Placement and cancellation, auth-required |
+
 ---
 
 ## Security & Trust Root
@@ -763,6 +938,69 @@ All governance decisions are cryptographically signed. In production mode (`EVE_
 | `caller_frame_hash` three-plane audit | Shipped |
 
 Architecture details: [docs/resilience/HSM_PKCS11_BACKEND.md](docs/resilience/HSM_PKCS11_BACKEND.md) | Runbook: [docs/runbooks/CLOUDHSM_INITIALIZATION.md](docs/runbooks/CLOUDHSM_INITIALIZATION.md)
+
+### SIEM & Observability Integration
+
+`core/siem/` — governance decision events exported in real time to enterprise SIEM platforms.
+
+**GovernanceEvent** (`core/siem/emitter.py`): structured event emitted after every governance decision, carrying:
+
+| Field | Description |
+|-------|-------------|
+| `event_type` | Decision class (charter_veto, pillar_block, replay_detected, etc.) |
+| `verdict` | ALLOW / BLOCK / MODIFY |
+| `tenant_id` | Tenant isolation marker |
+| `request_id` | Cryptographically bound request identifier |
+| `context_hash` | SHA-256 fingerprint of the semantic claims envelope |
+| `evaluation_basis_hash` | SHA-256 fingerprint of content + policy + tenant |
+| `policy_snapshot_hash` | Hash of the active policy ruleset at decision time |
+| `detector_rules_fired` | List of pillar/rule IDs that fired |
+| `decision_hash` | Hash of the signed Decision Certificate |
+| `event_hash` | JCS-deterministic hash of the event itself (excludes timestamp — identical events produce identical hashes) |
+
+**Four exporters** (async `SiemExporter` interface):
+
+| Exporter | Protocol | Details |
+|----------|----------|---------|
+| `splunk_exporter.py` | HTTP Event Collector (HEC) | `POST /services/collector/event`, sourcetype `governance_decision`, index `security` |
+| `datadog_exporter.py` | Datadog Events API | Tag-based routing, custom `governance.*` metric series |
+| `kafka_exporter.py` | Kafka producer | Configurable topic, JSON serialized, async batch |
+| `syslog_exporter.py` | RFC 5424 syslog | UDP/TCP, facility LOCAL0, severity mapped from verdict |
+
+### AI Behavioral Fingerprinting
+
+`core/security/behavioral_fingerprint.py` — detects model swapping, fine-tuning attacks, and data poisoning by tracking behavioral drift in registered AI subsystems.
+
+A `BehavioralProfile` is built per registered agent/model from observed response characteristics (latency distribution, token entropy, format consistency, refusal rate, reasoning depth). Each new response is compared against the baseline profile. Deviations beyond configurable thresholds trigger a `BehavioralAlert` with an `AlertLevel` enum (`NOMINAL`, `SUSPICIOUS`, `ANOMALOUS`, `CRITICAL`).
+
+**Attack vectors detected:**
+- **Model swapping** — response characteristics shift as if a different model is serving the endpoint
+- **Fine-tuning attacks** — gradual drift in refusal behavior or value alignment
+- **Data poisoning** — anomalous topic distribution or persona leakage
+- **System compromise** — sudden entropy shift or format regression
+
+### Byzantine / Traitor Detection
+
+`core/security/traitor_detection.py` — consensus-based detection of compromised or malicious subsystems within the EVE governance stack.
+
+Trust scores are maintained per subsystem. Behavioral anomalies — unexpected votes against consensus, signature mismatches, out-of-range outputs — decay the trust score. A subsystem falling below the quarantine threshold is isolated from the governance pipeline and replaced by a safe default. Quarantine events are emitted to the unified audit bus and trigger operator alerts.
+
+### Authentication — WebAuthn/FIDO2 & Multi-Factor
+
+**WebAuthn/FIDO2** (`saas/routers/webauthn.py`): Full YubiKey / FIDO2 hardware key support for high-privilege operations:
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /auth/webauthn/register/options` | Begin registration ceremony |
+| `POST /auth/webauthn/register/verify` | Complete registration, bind credential |
+| `POST /auth/webauthn/authenticate/options` | Begin authentication ceremony |
+| `POST /auth/webauthn/authenticate/verify` | Verify assertion, return proof token |
+| `GET /auth/webauthn/credentials` | List registered hardware keys |
+| `DELETE /auth/webauthn/credentials/{id}` | Revoke a credential |
+
+Requires `is_architect=True` privilege level. The `X-YubiKey-Proof` header produced by successful authentication is the gate for God Mode and other PLATFORM_ADMIN endpoints.
+
+**Multi-Factor Authentication** (`saas/routers/two_factor.py`): TOTP, SMS, and email second-factor under `/auth/2fa/*`. `Enable2FARequest` accepts a `method` field. All 2FA events are logged to the unified audit bus.
 
 ---
 
@@ -814,6 +1052,14 @@ python eve.py
 | **Audit Chain** | 4 | `/api/audit/chain`, `/api/audit/verify-event`, `/api/audit/export`, `/api/audit/summary` |
 | **Agent Loop** | 1 | `POST /api/chat/agent-loop` — governed multi-step reasoning, 34 tests |
 | **Benchmark** | 1 | `POST /api/benchmark/governance-pressure` — drift-pressure load testing |
+| **SIEM** | streaming | `core/siem/` — GovernanceEvent emitter → Splunk HEC, Datadog, Kafka, Syslog |
+| **Compliance** | 3 | `/api/compliance/evaluate` — EU AI Act tier, SOC 2 status, ECOA/SR 11-7 mappings |
+| **Auth — WebAuthn** | 6 | `/auth/webauthn/register/*`, `/auth/webauthn/authenticate/*`, credential management |
+| **Auth — 2FA** | routes | `/auth/2fa/*` — TOTP, SMS, email second factor |
+| **Credit Marketplace** | 5+ | `/api/marketplace/*` — inference credit order book, spot price, trade history |
+| **Vitals** | 4 | `/api/vitals`, `/api/vitals/summary`, `/api/vitals/prometheus`, `/api/vitals/{name}` |
+| **Governance Gateway** | 3 | `/gateway/chat`, `/gateway/agent_action`, `/gateway/tool_request` |
+| **CoreGuard Rights** | 4 | `/{decision_id}/explanation`, `/review-request`, `/contest`, `/rights-status` — GDPR Art. 22 |
 
 Full API catalog: [CLAUDE.md](CLAUDE.md) | Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
@@ -824,15 +1070,15 @@ Full API catalog: [CLAUDE.md](CLAUDE.md) | Full architecture: [docs/ARCHITECTURE
 | Component | Technology |
 |-----------|-----------|
 | Runtime | Python 3.10+, asyncio |
-| Governance Server | aiohttp (28,646 lines) |
-| SaaS API | FastAPI, SQLAlchemy, Pydantic (23 routers) |
-| Runtime Execution Plane | FastAPI router, 822 lines, HMAC-SHA256 signed, tenant-isolated, replay-protected |
+| Governance Server | aiohttp (32,710 lines) |
+| SaaS API | FastAPI, SQLAlchemy, Pydantic (28 routers) |
+| Runtime Execution Plane | FastAPI router, 1,215 lines, HMAC-SHA256 signed, tenant-isolated, replay-protected |
 | Cryptographic Signing | HMAC-SHA256, SHA-256 hash chains, JCS (RFC 8785) |
 | Credential Encryption | PBKDF2 (390K iterations, API vault), AES-256-GCM; stdlib HMAC-XOR fallback |
 | Databases | SQLite WAL (dev), PostgreSQL asyncpg (prod), Redis, MongoDB |
 | Vector Search | Pinecone, ChromaDB, MongoDB $vectorSearch |
 | Audit | Unified audit bus, Merkle aggregation, deletion proofs, SLSA L2 attestation |
-| Frontend | 115 app pages, 16 themes, SSE streaming |
+| Frontend | 119 app pages, 16 themes, SSE streaming |
 | Infrastructure | AWS CDK (ECS, Lambda, RDS, ElastiCache, S3) |
 
 ---
@@ -841,18 +1087,19 @@ Full API catalog: [CLAUDE.md](CLAUDE.md) | Full architecture: [docs/ARCHITECTURE
 
 | Metric | Count |
 |--------|-------|
-| Python files (core + interfaces + saas) | 1,705 |
-| Python lines (core + interfaces + saas) | 1,241,000+ |
-| HTML pages | 272 |
-| App pages | 115 |
-| JS files | 106 |
-| CSS files | 93 |
+| Python files (core + interfaces + saas) | 1,880 |
+| Python lines (core + interfaces + saas) | 1,022,000+ |
+| HTML pages | 276 |
+| App pages | 119 |
+| JS files | 123 |
+| CSS files | 97 |
 | Governance pillars (pre-LLM) | 126 |
 | Response Shield pillars (post-generation) | 17 |
 | **Total enforcement pillars** | **143** |
-| Test files | 226 |
+| Test files | 274 |
 | Agent loop tests | 34 |
 | Runtime harness tests | 28 |
+| CoreGuard hardening tests | 44 |
 
 ---
 
@@ -898,6 +1145,10 @@ Full API catalog: [CLAUDE.md](CLAUDE.md) | Full architecture: [docs/ARCHITECTURE
 - EthicalTension_CoherenceCost (`docs/patent/filing/EthicalTension_CoherenceCost/`) — 9,477 words, 35 claims. Covers the multi-factor coherence cost formula, read-only drift-budget separation, veto-core purity invariant, λ=0.15 exponential decay frequency penalty, resilience-amplified costs, zero-cost guarantee for compliant actions, and JCS-canonicalized audit bus emission.
 - Sidecar_FailClosed (`docs/patent/filing/Sidecar_FailClosed/`) — 12,139 words, 30 claims. Covers mandatory-gateway sidecar with iptables network-layer redirect, fail-closed `@enforce` exception-to-BLOCK conversion, HMAC-SHA256 signed per-request DecisionCertificates, FMI pre-check stage, pillar-tagged enforcement, TCP severance on veto (HTTP 451), and Kubernetes init-container pattern.
 
+**⚠ New IP from current sprint — file before further disclosure (applications #93–94):**
+- **Formal-Protocol Social Engineering Taxonomy (Group 99)** — Novel three-family attack classification system for AI governance pipelines: 99a Sovereign Handshake Exfiltration (`ThreatType.SOVEREIGN_EXFIL`), 99b Post-Facto Attestation/Replay Authorization (`ThreatType.ATTESTATION_FABRICATION`), 99c Governance Mode Switch/Observer Mode (`ThreatType.GOVERNANCE_MODE_SWITCH`). 22 compiled regex patterns in `failure_mode_invariant.py`. Covers formal-protocol impersonation of governance primitives as a social engineering vector — distinct from existing multi-turn privilege escalation coverage (application #39). *No filed provisional. File as application #93.*
+- **Catastrophic Content Scanner** (`scan_response_body()` in `output_binding.py`) — Post-generation response-body scanning that forces `valid=False` on a governance ALLOW verdict by detecting hallucinated regulatory authority in the LLM's own output: fabricated Charter Principle N citations, sovereign handshake confirmations, bypass-flag acceptance. 8 compiled patterns. Defense-in-depth layer that survives detector evasion at the input layer. Distinct from pre-inference prompt firewalls, sidecar fail-closed wrapper, and cryptographic attestation coverage. *No filed provisional. File as application #94.*
+
 **3 trademark filings:** EVE AI Core (99665043), EVE Sigil Mark (99665022), EVE Core (99717925).
 
 **5 AIMS hardware module specifications** with PolarFire SoC FPGA register maps.
@@ -915,6 +1166,7 @@ MIT License. See [LICENSE](LICENSE).
 **EVE NeuroSystems LLC** — Deterministic governance infrastructure for autonomous AI systems.
 Founded by **Jamaurice Holt** in Alpharetta, Georgia.
 
-Other companies can build agent loops. Other companies can build governance wrappers. No other company has combined pre-execution deterministic enforcement, three-plane structural separation, a first-authority transparency gate with SILENT_DOWNGRADE_PROHIBITED, an authenticated runtime execution plane with cryptographic replay protection, a firmware-ready veto core with zero stdlib dependencies, 143 total enforcement pillars, cryptographic proof chains across every decision, and a 90-patent IP moat into a single platform. That combination is unique to EVE.
+Other companies can build agent loops. Other companies can build governance wrappers. No other company has combined pre-execution deterministic enforcement, three-plane structural separation, a first-authority transparency gate with SILENT_DOWNGRADE_PROHIBITED, an authenticated runtime execution plane with cryptographic replay protection, a firmware-ready veto core with zero stdlib dependencies, 143 total enforcement pillars, a Trust Fabric Middleware that orchestrates every pre+post check into a signed TrustFabricVerdict, a Governance Decision Ledger with timestamp-free chain hashing, Ed25519-signed immutable policy snapshots, structured ECOA/SR 11-7 evidence packages with auditor replay instructions, GDPR Art. 22 data subject rights for every automated decision, context-hashing deterministic replay detection, EU AI Act automated classification, SOC 2 Type II control mapping, SIEM integration across four enterprise platforms (Splunk, Datadog, Kafka, Syslog), Langfuse LLM observability with prompt versioning, Prometheus vitals exposition, AI behavioral fingerprinting with Byzantine traitor detection, YubiKey/FIDO2 hardware authentication, cryptographic proof chains across every decision, a catastrophic content scanner that vetoes hallucinated regulatory authority in the LLM's own output, and a 90-patent IP moat into a single platform. That combination is unique to EVE.
 
 [eveaicore.com](https://eveaicore.com) | [IP Portfolio](https://eveaicore.com/ip) | [CoreGuard Demo](https://eveaicore.com/coreguard) | [Agent Loop Demo](https://eveaicore.com/cognitive-demo) | support@eveaicore.com
+
